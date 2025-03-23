@@ -1,5 +1,3 @@
-// script.js
-
 // Banco de perguntas com 20 questões sobre as características físicas da Europa
 const questionsPool = [
     { question: "Qual é a montanha mais alta da Europa Ocidental?", options: ["Mont Blanc", "Cárpatos", "Pirineus"], answer: "Mont Blanc" },
@@ -24,7 +22,6 @@ const questionsPool = [
     { question: "Qual mar separa a Europa da África?", options: ["Mar Mediterrâneo", "Mar Báltico", "Mar Negro"], answer: "Mar Mediterrâneo" }
 ];
 
-
 // Função para embaralhar um array (utilizando o algoritmo de Fisher-Yates)
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -33,57 +30,28 @@ function shuffleArray(array) {
     }
 }
 
-// Função para exibir a pergunta atual com as opções embaralhadas
-function showQuestion() {
-    const question = selectedQuestions[currentIndex];
-    quizQuestion.textContent = question.question;
-    quizOptions.innerHTML = "";
-
-    // Cria uma cópia das opções e embaralha
-    const shuffledOptions = [...question.options];
-    shuffleArray(shuffledOptions);
-
-    // Renderiza as opções embaralhadas como botões
-    shuffledOptions.forEach(option => {
-        const button = document.createElement("button");
-        button.textContent = option;
-        button.className = "quiz-option";
-        button.addEventListener("click", () => checkAnswer(option)); // Verifica resposta
-        quizOptions.appendChild(button);
-    });
-
-    // Atualiza o número da pergunta
-    const questionNumber = document.getElementById("question-number");
-    questionNumber.textContent = currentIndex + 1;
-}
-
 // Variáveis globais
 let currentIndex = 0; // Índice da pergunta atual
 let selectedQuestions = []; // Perguntas selecionadas aleatoriamente
 let score = 0; // Pontuação do jogador
-let leaderboardData = []; // Dados do ranking
 
 // Seletores do DOM
-const leaderboard = document.getElementById("leaderboard");
-const nameSection = document.getElementById("name-section");
 const playerNameInput = document.getElementById("player-name");
 const startQuizButton = document.getElementById("start-quiz");
-
 const quizSection = document.getElementById("quiz-section");
 const quizQuestion = document.getElementById("quiz-question");
 const quizOptions = document.getElementById("quiz-options");
 const quizFeedback = document.getElementById("quiz-feedback");
 const quizScore = document.getElementById("quiz-score");
-
 const endSection = document.getElementById("end-section");
 const finalScore = document.getElementById("final-score");
 const playerDisplayName = document.getElementById("player-display-name");
-const restartQuizButton = document.getElementById("restart-quiz");
 
 // Função para selecionar 10 perguntas aleatórias
 function selectRandomQuestions() {
-    const shuffled = questionsPool.sort(() => Math.random() - 0.5); // Embaralha o banco de perguntas
-    return shuffled.slice(0, 10); // Retorna as 10 primeiras perguntas embaralhadas
+    const shuffled = [...questionsPool]; // Copia o banco de perguntas
+    shuffleArray(shuffled); // Embaralha as perguntas
+    return shuffled.slice(0, 10); // Retorna as 10 primeiras
 }
 
 // Função para iniciar o quiz
@@ -94,35 +62,34 @@ startQuizButton.addEventListener("click", () => {
         return;
     }
 
-    // Inicializa o quiz
     playerDisplayName.textContent = playerName;
     selectedQuestions = selectRandomQuestions();
     currentIndex = 0;
     score = 0;
     quizScore.textContent = "Pontos: 0";
 
-    // Oculta a seção de nome e exibe o quiz
-    nameSection.style.display = "none";
     quizSection.style.display = "block";
-
-    showQuestion(); // Mostra a primeira pergunta
+    showQuestion();
 });
 
-// Função para exibir a pergunta atual
+// Função para exibir a pergunta atual com as opções embaralhadas
 function showQuestion() {
     const question = selectedQuestions[currentIndex];
     quizQuestion.textContent = question.question;
-    quizOptions.innerHTML = ""; // Limpa opções anteriores
+    quizOptions.innerHTML = "";
 
-    question.options.forEach(option => {
+    // Embaralhar opções da pergunta atual
+    const shuffledOptions = [...question.options];
+    shuffleArray(shuffledOptions);
+
+    shuffledOptions.forEach(option => {
         const button = document.createElement("button");
         button.textContent = option;
         button.className = "quiz-option";
-        button.addEventListener("click", () => checkAnswer(option)); // Adiciona evento de clique
+        button.addEventListener("click", () => checkAnswer(option));
         quizOptions.appendChild(button);
     });
 
-    // Atualiza o número da pergunta atual
     const questionNumber = document.getElementById("question-number");
     questionNumber.textContent = currentIndex + 1;
 }
@@ -131,7 +98,7 @@ function showQuestion() {
 function checkAnswer(selected) {
     const question = selectedQuestions[currentIndex];
     if (selected === question.answer) {
-        score += 10; // Adiciona pontos se a resposta estiver correta
+        score += 10;
         quizFeedback.textContent = "🎉 Correto!";
         quizFeedback.style.color = "green";
     } else {
@@ -139,16 +106,15 @@ function checkAnswer(selected) {
         quizFeedback.style.color = "red";
     }
 
-    quizScore.textContent = `Pontos: ${score}`; // Atualiza pontuação exibida
+    quizScore.textContent = `Pontos: ${score}`;
 
-    // Avança para a próxima pergunta
     currentIndex++;
     setTimeout(() => {
-        quizFeedback.textContent = ""; // Limpa feedback após 1 segundo
+        quizFeedback.textContent = "";
         if (currentIndex < selectedQuestions.length) {
-            showQuestion(); // Mostra próxima pergunta
+            showQuestion();
         } else {
-            finishQuiz(); // Finaliza o quiz se todas as perguntas foram respondidas
+            finishQuiz();
         }
     }, 1000);
 }
@@ -158,26 +124,4 @@ function finishQuiz() {
     quizSection.style.display = "none";
     endSection.style.display = "block";
     finalScore.textContent = `Você marcou ${score} pontos!`;
-
-    // Adiciona o jogador ao ranking
-    leaderboardData.push({ name: playerDisplayName.textContent, score });
-    leaderboardData.sort((a, b) => b.score - a.score); // Ordena ranking por pontuação
-    updateLeaderboard();
 }
-
-// Função para atualizar o ranking
-function updateLeaderboard() {
-    leaderboard.innerHTML = ""; // Limpa ranking existente
-    leaderboardData.forEach(player => {
-        const li = document.createElement("li");
-        li.textContent = `${player.name} - ${player.score} pontos`;
-        leaderboard.appendChild(li);
-    });
-}
-
-// Função para reiniciar o quiz
-restartQuizButton.addEventListener("click", () => {
-    endSection.style.display = "none";
-    nameSection.style.display = "block";
-    playerNameInput.value = ""; // Reseta o campo de nome
-});
