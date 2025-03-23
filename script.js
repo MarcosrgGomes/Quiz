@@ -24,6 +24,39 @@ const questionsPool = [
     { question: "Qual mar separa a Europa da África?", options: ["Mar Mediterrâneo", "Mar Báltico", "Mar Negro"], answer: "Mar Mediterrâneo" }
 ];
 
+
+// Função para embaralhar um array (utilizando o algoritmo de Fisher-Yates)
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+// Função para exibir a pergunta atual com as opções embaralhadas
+function showQuestion() {
+    const question = selectedQuestions[currentIndex];
+    quizQuestion.textContent = question.question;
+    quizOptions.innerHTML = "";
+
+    // Cria uma cópia das opções e embaralha
+    const shuffledOptions = [...question.options];
+    shuffleArray(shuffledOptions);
+
+    // Renderiza as opções embaralhadas como botões
+    shuffledOptions.forEach(option => {
+        const button = document.createElement("button");
+        button.textContent = option;
+        button.className = "quiz-option";
+        button.addEventListener("click", () => checkAnswer(option)); // Verifica resposta
+        quizOptions.appendChild(button);
+    });
+
+    // Atualiza o número da pergunta
+    const questionNumber = document.getElementById("question-number");
+    questionNumber.textContent = currentIndex + 1;
+}
+
 // Variáveis globais
 let currentIndex = 0; // Índice da pergunta atual
 let selectedQuestions = []; // Perguntas selecionadas aleatoriamente
