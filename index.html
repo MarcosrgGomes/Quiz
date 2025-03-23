@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Interativo da Europa</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Quiz Interativo da Europa 🌍</h1>
+        <p>Teste seus conhecimentos sobre o continente europeu e suba no ranking!</p>
+    </header>
+
+    <main>
+        <!-- Ranking Inicial -->
+        <section id="leaderboard-section">
+            <h2>🏆 Ranking de Jogadores</h2>
+            <ol id="leaderboard">
+                <!-- Ranking será preenchido dinamicamente -->
+            </ol>
+        </section>
+
+        <!-- Nome do Jogador -->
+        <section id="name-section">
+            <h2>Digite seu nome para começar</h2>
+            <input type="text" id="player-name" placeholder="Seu nome">
+            <button id="start-quiz">Iniciar Quiz</button>
+        </section>
+
+        <!-- Quiz -->
+        <section id="quiz-section" style="display: none;">
+            <h2>Pergunta <span id="question-number">1</span>/10</h2>
+            <p id="quiz-question"></p>
+            <div id="quiz-options">
+                <!-- Botões de respostas serão gerados aqui -->
+            </div>
+            <p id="quiz-feedback"></p>
+            <p id="quiz-score">Pontos: 0</p>
+        </section>
+
+        <!-- Resultado Final -->
+        <section id="end-section" style="display: none;">
+            <h2>Parabéns, <span id="player-display-name"></span>!</h2>
+            <p id="final-score"></p>
+            <h3>🏆 Ranking Atualizado:</h3>
+            <ol id="final-leaderboard">
+                <!-- Ranking será listado aqui -->
+            </ol>
+            <button id="restart-quiz">Jogar Novamente</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 Quiz Interativo da Europa | Teste seus conhecimentos e divirta-se!</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
