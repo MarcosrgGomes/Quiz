@@ -10,38 +10,39 @@
     <header>
         <h1>Quiz Interativo da Europa 🌍</h1>
         <p>Teste seus conhecimentos sobre o continente europeu e suba no ranking!</p>
+        
     </header>
 
     <main>
-        <!-- Ranking Inicial -->
-        <section id="leaderboard-section">
-            <h2>🏆 Ranking de Jogadores</h2>
+        <aside id="leaderboard-section" role="complementary" aria-labelledby="ranking-title">
+            <h2 id="ranking-title">🏆 Ranking</h2>
             <ol id="leaderboard">
                 <!-- Ranking será preenchido dinamicamente -->
             </ol>
-        </section>
+        </aside>
 
-        <!-- Nome do Jogador -->
         <section id="name-section">
             <h2>Digite seu nome para começar</h2>
-            <input type="text" id="player-name" placeholder="Seu nome">
+            <label for="player-name">Seu nome:</label>
+            <input type="text" id="player-name" placeholder="Ex: João" required aria-required="true">
+            <p id="name-error" class="error-message" style="display: none;" role="alert">Por favor, insira um nome válido.</p>
             <button id="start-quiz">Iniciar Quiz</button>
         </section>
 
-        <!-- Quiz -->
-        <section id="quiz-section" style="display: none;">
-            <h2>Pergunta <span id="question-number">1</span>/10</h2>
+        <section id="quiz-section" style="display: none;" aria-live="polite">
+            <p id="question-number">Pergunta: 1/10</p>
             <p id="quiz-question"></p>
-            <div id="quiz-options">
+            <div id="quiz-options" role="radiogroup" aria-labelledby="quiz-question">
                 <!-- Botões de respostas serão gerados aqui -->
             </div>
-            <p id="quiz-feedback"></p>
+            <p id="quiz-feedback" role="alert"></p>
             <p id="quiz-score">Pontos: 0</p>
+            <p id="timer" role="timer" aria-live="assertive">Tempo restante: 30s</p>
         </section>
 
-        <!-- Resultado Final -->
         <section id="end-section" style="display: none;">
-            <h2>Parabéns, <span id="player-display-name"></span>!</h2>
+            <h2>Fim do Quiz!</h2>
+            <p id="player-display-name-final"></p>
             <p id="final-score"></p>
             <h3>🏆 Ranking Atualizado:</h3>
             <ol id="final-leaderboard">
