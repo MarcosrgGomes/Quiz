@@ -3,57 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Interativo da Europa</title>
+    <title>Quiz Europa | Características Físicas</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Merriweather:wght@700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>Quiz Interativo da Europa 🌍</h1>
-        <p>Teste seus conhecimentos sobre o continente europeu e suba no ranking!</p>
-        
+    <div class="background-effect"></div>
+    
+    <header class="main-header">
+        <div class="container">
+            <h1>
+                <i class="fas fa-mountain"></i>
+                Quiz Europa
+            </h1>
+            <p>Teste seu conhecimento sobre a geografia física europeia</p>
+        </div>
     </header>
 
-    <main>
-        <aside id="leaderboard-section" role="complementary" aria-labelledby="ranking-title">
-            <h2 id="ranking-title">🏆 Ranking</h2>
-            <ol id="leaderboard">
-                <!-- Ranking será preenchido dinamicamente -->
-            </ol>
-        </aside>
-
-        <section id="name-section">
-            <h2>Digite seu nome para começar</h2>
-            <label for="player-name">Seu nome:</label>
-            <input type="text" id="player-name" placeholder="Ex: João" required aria-required="true">
-            <p id="name-error" class="error-message" style="display: none;" role="alert">Por favor, insira um nome válido.</p>
-            <button id="start-quiz">Iniciar Quiz</button>
-        </section>
-
-        <section id="quiz-section" style="display: none;" aria-live="polite">
-            <p id="question-number">Pergunta: 1/10</p>
-            <p id="quiz-question"></p>
-            <div id="quiz-options" role="radiogroup" aria-labelledby="quiz-question">
-                <!-- Botões de respostas serão gerados aqui -->
+    <main class="quiz-container">
+        <!-- Tela Inicial -->
+        <section id="start-screen" class="active-screen">
+            <div class="card">
+                <h2><i class="fas fa-flag"></i> Bem-vindo!</h2>
+                <p>Este quiz contém 10 perguntas sobre:</p>
+                <ul class="features-list">
+                    <li><i class="fas fa-mountain"></i> Relevo europeu</li>
+                    <li><i class="fas fa-water"></i> Hidrografia</li>
+                    <li><i class="fas fa-tree"></i> Vegetação</li>
+                    <li><i class="fas fa-cloud-sun"></i> Clima</li>
+                    <li><i class="fas fa-gem"></i> Recursos naturais</li>
+                </ul>
+                
+                <div class="form-group">
+                    <label for="player-name">Digite seu nome:</label>
+                    <input type="text" id="player-name" placeholder="Seu nome" required>
+                    <p id="name-error" class="error-message"></p>
+                </div>
+                
+                <button id="start-btn" class="btn-primary">
+                    <i class="fas fa-play"></i> Começar Quiz
+                </button>
             </div>
-            <p id="quiz-feedback" role="alert"></p>
-            <p id="quiz-score">Pontos: 0</p>
-            <p id="timer" role="timer" aria-live="assertive">Tempo restante: 30s</p>
         </section>
 
-        <section id="end-section" style="display: none;">
-            <h2>Fim do Quiz!</h2>
-            <p id="player-display-name-final"></p>
-            <p id="final-score"></p>
-            <h3>🏆 Ranking Atualizado:</h3>
-            <ol id="final-leaderboard">
-                <!-- Ranking será listado aqui -->
-            </ol>
-            <button id="restart-quiz">Jogar Novamente</button>
+        <!-- Tela do Quiz -->
+        <section id="quiz-screen" class="screen">
+            <div class="quiz-header">
+                <span id="progress" class="badge">
+                    <i class="fas fa-question-circle"></i> 1/10
+                </span>
+                <span id="timer" class="badge timer">
+                    <i class="fas fa-clock"></i> 30s
+                </span>
+            </div>
+            
+            <div class="card">
+                <h2 id="question"></h2>
+                
+                <div id="options" class="options-grid"></div>
+                
+                <div id="feedback" class="feedback-box"></div>
+                
+                <div class="quiz-footer">
+                    <button id="next-btn" class="btn-primary hidden">
+                        Próxima <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <span id="score" class="score-display">
+                        <i class="fas fa-star"></i> 0 pontos
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tela de Resultados -->
+        <section id="results-screen" class="screen">
+            <div class="card result-card">
+                <div class="result-header">
+                    <h2><i class="fas fa-trophy"></i> Resultado Final</h2>
+                    <p id="final-score"></p>
+                </div>
+                
+                <div class="result-details">
+                    <div class="result-graph">
+                        <div id="score-bar" class="score-bar"></div>
+                    </div>
+                    
+                    <h3><i class="fas fa-medal"></i> Ranking</h3>
+                    <ol id="leaderboard" class="leaderboard"></ol>
+                </div>
+                
+                <button id="restart-btn" class="btn-primary">
+                    <i class="fas fa-redo"></i> Jogar Novamente
+                </button>
+            </div>
         </section>
     </main>
 
-    <footer>
-        <p>© 2025 Quiz Interativo da Europa | Teste seus conhecimentos e divirta-se!</p>
+    <footer class="main-footer">
+        <div class="container">
+            <p>© 2023 Quiz Europa - Desenvolvido com <i class="fas fa-heart"></i> para amantes de geografia</p>
+        </div>
     </footer>
 
     <script src="script.js"></script>
