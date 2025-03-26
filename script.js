@@ -1,213 +1,304 @@
-// Variáveis globais atualizadas
-let currentQuestionIndex = 0;
-let playerName = '';
+// Dados completos do quiz
+const quizData = {
+    relevo: [
+        {
+            question: "Qual é a montanha mais alta da Europa Ocidental?",
+            options: ["Monte Branco", "Monte Elbrus", "Pirineus", "Cárpatos"],
+            answer: "Monte Branco",
+            fact: "O Monte Branco nos Alpes tem 4.810m e fica na fronteira entre França e Itália."
+        },
+        {
+            question: "Qual planície se estende da França até a Rússia?",
+            options: ["Planície Europeia", "Planície Siberiana", "Planície do Danúbio", "Planície Ibérica"],
+            answer: "Planície Europeia",
+            fact: "Com cerca de 4.000km de extensão, é uma das maiores planícies do mundo."
+        }
+    ],
+    hidrografia: [
+        {
+            question: "Qual é o rio mais longo da Europa?",
+            options: ["Volga", "Danúbio", "Reno", "Sena"],
+            answer: "Volga",
+            fact: "O Volga percorre 3.690km pela Rússia até desaguar no Mar Cáspio."
+        },
+        {
+            question: "Quantos países o rio Danúbio atravessa?",
+            options: ["10", "6", "8", "12"],
+            answer: "10",
+            fact: "O Danúbio passa por Alemanha, Áustria, Eslováquia, Hungria, Croácia, Sérvia, Romênia, Bulgária, Moldávia e Ucrânia."
+        }
+    ],
+    vegetacao: [
+        {
+            question: "Qual vegetação predomina no norte da Europa?",
+            options: ["Tundra", "Floresta Temperada", "Vegetação Mediterrânea", "Estepe"],
+            answer: "Tundra",
+            fact: "Caracterizada por musgos, líquens e vegetação rasteira, adaptada ao frio extremo."
+        }
+    ],
+    clima: [
+        {
+            question: "Qual corrente oceânica aquece o noroeste europeu?",
+            options: ["Corrente do Golfo", "Corrente de Humboldt", "Corrente da Califórnia", "Corrente de Benguela"],
+            answer: "Corrente do Golfo",
+            fact: "Transporta águas quentes do Golfo do México, amenizando o clima da região."
+        }
+    ],
+    recursos: [
+        {
+            question: "Onde estão as principais reservas de carvão na Europa?",
+            options: ["Bacia do Ruhr (Alemanha)", "Pirineus", "Alpes", "Cárpatos"],
+            answer: "Bacia do Ruhr (Alemanha)",
+            fact: "Foi fundamental para a Revolução Industrial alemã."
+        }
+    ]
+};
+
+// Variáveis globais
+let currentQuestion = 0;
 let score = 0;
-let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
-let selectedQuestions = [];
-let timerInterval;
+let timeLeft = 30;
+let timer;
+let playerName = "";
+let questions = [];
+let leaderboard = JSON.parse(localStorage.getItem('europeQuizLeaderboard')) || [];
 
-// Função para embaralhar um array
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
+// Elementos DOM
+const startScreen = document.getElementById('start-screen');
+const quizScreen = document.getElementById('quiz-screen');
+const resultsScreen = document.getElementById('results-screen');
+const playerNameInput = document.getElementById('player-name');
+const nameError = document.getElementById('name-error');
+const startBtn = document.getElementById('start-btn');
+const nextBtn = document.getElementById('next-btn');
+const restartBtn = document.getElementById('restart-btn');
+const questionElement = document.getElementById('question');
+const optionsContainer = document.getElementById('options');
+const feedbackElement = document.getElementById('feedback');
+const progressElement = document.getElementById('progress');
+const scoreElement = document.getElementById('score');
+const finalScoreElement = document.getElementById('final-score');
+const timerElement = document.getElementById('timer');
+const leaderboardElement = document.getElementById('leaderboard');
+const scoreBar = document.getElementById('score-bar');
 
-// Função para iniciar o quiz
+// Event Listeners
+startBtn.addEventListener('click', startQuiz);
+nextBtn.addEventListener('click', nextQuestion);
+restartBtn.addEventListener('click', restartQuiz);
+playerNameInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') startQuiz();
+});
+
+// Iniciar o quiz
 function startQuiz() {
-    playerName = document.getElementById('player-name').value.trim();
+    playerName = playerNameInput.value.trim();
+    
     if (!playerName) {
-        alert('Por favor, insira um nome válido!');
+        nameError.textContent = "Por favor, digite seu nome!";
+        nameError.style.display = "block";
         return;
     }
-
-    shuffleArray(questionsPool);
-    selectedQuestions = questionsPool.slice(0, 10);
-
-    document.getElementById('name-section').style.display = 'none';
-    document.getElementById('quiz-section').style.display = 'block';
-
+    
+    // Seleciona 10 perguntas aleatórias de todos os tópicos
+    const allQuestions = [
+        ...quizData.relevo,
+        ...quizData.hidrografia,
+        ...quizData.vegetacao,
+        ...quizData.clima,
+        ...quizData.recursos
+    ];
+    
+    // Embaralha e seleciona 10 questões
+    questions = allQuestions
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 10);
+    
+    // Resetar variáveis
+    currentQuestion = 0;
+    score = 0;
+    timeLeft = 30;
+    
+    // Mostrar tela do quiz
+    startScreen.classList.remove('active-screen');
+    quizScreen.classList.add('active-screen');
+    resultsScreen.classList.remove('active-screen');
+    
+    // Carregar primeira pergunta
     loadQuestion();
 }
 
-// Função para carregar a pergunta
+// Carregar pergunta
 function loadQuestion() {
-    clearInterval(timerInterval); // Reinicia o temporizador
-    let timeLeft = 30; // 30 segundos por pergunta
-    updateTimerDisplay(timeLeft);
-
-    timerInterval = setInterval(() => {
-        timeLeft--;
-        updateTimerDisplay(timeLeft);
-        if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            checkAnswer(null, selectedQuestions[currentQuestionIndex].answer); // Resposta automática
-        }
-    }, 1000);
-
-    const question = selectedQuestions[currentQuestionIndex];
-    const questionText = document.getElementById('quiz-question');
-    const optionsContainer = document.getElementById('quiz-options');
-    const questionNumber = document.getElementById('question-number');
-
-    questionText.textContent = question.question;
-    questionNumber.textContent = `Pergunta: ${currentQuestionIndex + 1}/10`;
-
-    optionsContainer.innerHTML = ''; // Limpar opções anteriores
-
-    // Criar os botões de resposta
-    shuffleArray(question.options).forEach(option => {
+    // Limpar timer anterior
+    clearInterval(timer);
+    
+    // Resetar timer
+    timeLeft = 30;
+    updateTimer();
+    
+    // Obter questão atual
+    const question = questions[currentQuestion];
+    
+    // Atualizar elementos da tela
+    questionElement.textContent = question.question;
+    progressElement.innerHTML = `<i class="fas fa-question-circle"></i> ${currentQuestion + 1}/${questions.length}`;
+    scoreElement.innerHTML = `<i class="fas fa-star"></i> ${score} pontos`;
+    feedbackElement.innerHTML = '';
+    nextBtn.classList.add('hidden');
+    
+    // Limpar opções anteriores
+    optionsContainer.innerHTML = '';
+    
+    // Adicionar novas opções (embaralhadas)
+    question.options.sort(() => 0.5 - Math.random()).forEach(option => {
         const button = document.createElement('button');
-        button.textContent = option;
-        button.classList.add('option-button'); // Adiciona classe CSS para estilização
-        button.onclick = () => {
-            clearInterval(timerInterval); // Parar o temporizador ao responder
-            checkAnswer(option, question.answer);
-        };
-        button.setAttribute('aria-label', `Opção de resposta: ${option}`);
+        button.className = 'quiz-option';
+        button.innerHTML = `<i class="far fa-circle"></i> ${option}`;
+        button.addEventListener('click', () => selectAnswer(option, button));
         optionsContainer.appendChild(button);
     });
+    
+    // Iniciar temporizador
+    startTimer();
 }
 
-// Função para verificar a resposta
-function checkAnswer(selectedAnswer, correctAnswer) {
-    const feedback = document.getElementById('quiz-feedback');
-    const optionsContainer = document.getElementById('quiz-options');
-
-    // Desabilitar todos os botões após a resposta
-    optionsContainer.querySelectorAll('button').forEach(button => {
+// Selecionar resposta
+function selectAnswer(selectedOption, selectedButton) {
+    clearInterval(timer);
+    const correctAnswer = questions[currentQuestion].answer;
+    const isCorrect = selectedOption === correctAnswer;
+    
+    // Desativar todas as opções
+    document.querySelectorAll('.quiz-option').forEach(button => {
         button.disabled = true;
-        if (button.textContent === correctAnswer) {
-            button.classList.add('correct'); // Destacar resposta correta
-        } else if (button.textContent === selectedAnswer) {
-            button.classList.add('incorrect'); // Destacar resposta errada
+        
+        // Marcar a resposta correta
+        if (button.textContent.includes(correctAnswer)) {
+            button.className = 'quiz-option correct';
+            button.innerHTML = `<i class="fas fa-check-circle"></i> ${correctAnswer}`;
+        }
+        
+        // Marcar resposta errada se for o caso
+        if (button === selectedButton && !isCorrect) {
+            button.className = 'quiz-option wrong';
+            button.innerHTML = `<i class="fas fa-times-circle"></i> ${selectedOption}`;
         }
     });
-
-    if (selectedAnswer === correctAnswer) {
+    
+    // Atualizar pontuação e feedback
+    if (isCorrect) {
         score += 10;
-        feedback.textContent = 'Resposta Correta! 🎉';
-        feedback.style.color = 'green';
+        feedbackElement.innerHTML = `
+            <div class="feedback-correct">
+                <i class="fas fa-check"></i> 
+                <strong>Correto!</strong> ${questions[currentQuestion].fact}
+            </div>
+        `;
     } else {
-        feedback.textContent = selectedAnswer
-            ? `Resposta Errada! A resposta correta era: ${correctAnswer}`
-            : 'Tempo esgotado! 😢';
-        feedback.style.color = 'red';
+        feedbackElement.innerHTML = `
+            <div class="feedback-incorrect">
+                <i class="fas fa-times"></i> 
+                <strong>Incorreto!</strong> A resposta correta é: ${correctAnswer}. 
+                ${questions[currentQuestion].fact}
+            </div>
+        `;
     }
-
-    document.getElementById('quiz-score').textContent = `Pontos: ${score}`;
-    currentQuestionIndex++;
-
-    setTimeout(() => {
-        if (currentQuestionIndex < selectedQuestions.length) {
-            loadQuestion(); // Carregar próxima pergunta
-        } else {
-            showEndScreen(); // Exibir tela final
-        }
-    }, 1000);
+    
+    // Atualizar pontuação
+    scoreElement.innerHTML = `<i class="fas fa-star"></i> ${score} pontos`;
+    nextBtn.classList.remove('hidden');
 }
 
-// Função para exibir a tela final e atualizar o ranking
-function showEndScreen() {
-    document.getElementById('quiz-section').style.display = 'none';
-    document.getElementById('end-section').style.display = 'block';
-    document.getElementById('final-score').textContent = `Pontuação final: ${score}`;
-    document.getElementById('player-display-name-final').textContent = `Parabéns, ${playerName}!`;
+// Próxima pergunta
+function nextQuestion() {
+    currentQuestion++;
+    
+    if (currentQuestion < questions.length) {
+        loadQuestion();
+    } else {
+        endQuiz();
+    }
+}
 
-    // Atualizar o ranking
+// Finalizar quiz
+function endQuiz() {
+    // Atualizar ranking
     leaderboard.push({ name: playerName, score });
     leaderboard.sort((a, b) => b.score - a.score);
     leaderboard = leaderboard.slice(0, 5);
-    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
-
-    updateLeaderboard();
-}
-
-// Função para atualizar o ranking na tela
-function updateLeaderboard() {
-    const leaderboardContainer = document.getElementById('final-leaderboard');
-    leaderboardContainer.innerHTML = '';
-    let medals = ['🥇', '🥈', '🥉'];
-    leaderboard.forEach((entry, index) => {
-        let li = document.createElement('li');
-        li.innerHTML = `${medals[index] || ''} ${entry.name} - ${entry.score} pontos`;
-        leaderboardContainer.appendChild(li);
+    localStorage.setItem('europeQuizLeaderboard', JSON.stringify(leaderboard));
+    
+    // Mostrar tela de resultados
+    quizScreen.classList.remove('active-screen');
+    resultsScreen.classList.add('active-screen');
+    
+    // Calcular porcentagem de acertos
+    const percentage = Math.round((score / (questions.length * 10)) * 100);
+    
+    // Atualizar elementos
+    finalScoreElement.textContent = `${playerName}, você acertou ${score / 10} de ${questions.length} perguntas! (${percentage}%)`;
+    scoreBar.style.width = `${percentage}%`;
+    
+    // Atualizar ranking
+    leaderboardElement.innerHTML = '';
+    leaderboard.forEach((player, index) => {
+        const medal = ['🥇', '🥈', '🥉'][index] || `${index + 1}.`;
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span>${medal} ${player.name}</span>
+            <span>${player.score} pts</span>
+        `;
+        leaderboardElement.appendChild(li);
     });
 }
 
-// Função para reiniciar o quiz
+// Reiniciar quiz
 function restartQuiz() {
-    currentQuestionIndex = 0;
-    score = 0;
-    clearInterval(timerInterval);
-    document.getElementById('quiz-section').style.display = 'none';
-    document.getElementById('end-section').style.display = 'none';
-    document.getElementById('name-section').style.display = 'block';
-    document.getElementById('quiz-feedback').textContent = '';
-    document.getElementById('quiz-score').textContent = 'Pontos: 0';
-    document.getElementById('player-name').value = '';
+    resultsScreen.classList.remove('active-screen');
+    startScreen.classList.add('active-screen');
+    playerNameInput.value = '';
+    nameError.style.display = 'none';
+    clearInterval(timer);
 }
 
-// Função para atualizar o temporizador na tela
-function updateTimerDisplay(timeLeft) {
-    const timerElement = document.getElementById('timer');
-    timerElement.textContent = `Tempo restante: ${timeLeft}s`;
-    timerElement.style.color = timeLeft <= 10 ? 'red' : 'black';
+// Funções do timer
+function startTimer() {
+    timer = setInterval(() => {
+        timeLeft--;
+        updateTimer();
+        
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            timeUp();
+        }
+    }, 1000);
 }
 
-// Banco de perguntas
-const questionsPool = [
-    // Relevo
-    { question: "Qual é a montanha mais alta da Europa Ocidental?", options: ["Mont Blanc", "Cárpatos", "Pirineus"], answer: "Mont Blanc" },
-    { question: "Qual é a principal planície que se estende do centro ao leste da Europa?", options: ["Planície Europeia Central", "Planície Siberiana", "Planície do Danúbio"], answer: "Planície Europeia Central" },
-    { question: "Quais montanhas tradicionalmente marcam a fronteira entre a Europa e a Ásia?", options: ["Urais", "Alpes", "Cárpatos"], answer: "Urais" },
-    { question: "Qual cadeia montanhosa é famosa por suas estações de esqui e atravessa vários países europeus?", options: ["Alpes", "Pirineus", "Cárpatos"], answer: "Alpes" },
-    { question: "Qual é o ponto mais alto dos Pirineus?", options: ["Aneto", "Monte Branco", "Monte Elbrus"], answer: "Aneto" },
-    { question: "Qual é a principal característica do relevo do norte da Europa?", options: ["Planícies extensas", "Montanhas altas", "Desertos"], answer: "Planícies extensas" },
-    { question: "Qual é a cordilheira que separa a Península Ibérica da França?", options: ["Pirineus", "Alpes", "Cárpatos"], answer: "Pirineus" },
-    { question: "Qual é o nome da planície que se estende da França até a Rússia?", options: ["Planície Europeia Central", "Planície Siberiana", "Planície do Danúbio"], answer: "Planície Europeia Central" },
-    { question: "Qual é a montanha mais alta da Europa?", options: ["Monte Elbrus", "Mont Blanc", "Monte Rosa"], answer: "Monte Elbrus" },
-    { question: "Qual é a principal cadeia montanhosa da Península Balcânica?", options: ["Balcãs", "Alpes", "Cárpatos"], answer: "Balcãs" },
+function updateTimer() {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    timerElement.innerHTML = `<i class="fas fa-clock"></i> ${minutes > 0 ? `${minutes}m ` : ''}${seconds}s`;
+    timerElement.style.color = timeLeft <= 10 ? 'var(--error)' : 'var(--primary)';
+}
 
-    // Hidrografia
-    { question: "Qual é o rio mais longo da Europa?", options: ["Volga", "Danúbio", "Reno"], answer: "Volga" },
-    { question: "Qual rio atravessa mais países na Europa?", options: ["Danúbio", "Volga", "Reno"], answer: "Danúbio" },
-    { question: "Qual é o maior lago da Europa?", options: ["Lago Ladoga", "Lago de Genebra", "Lago Balaton"], answer: "Lago Ladoga" },
-    { question: "Qual rio é essencial para o comércio na Europa Ocidental?", options: ["Reno", "Volga", "Danúbio"], answer: "Reno" },
-    { question: "Qual rio banha a cidade de Paris?", options: ["Sena", "Tâmisa", "Reno"], answer: "Sena" },
-    { question: "Qual é o maior lago da Europa em volume de água?", options: ["Lago Ladoga", "Lago Onega", "Lago Vänern"], answer: "Lago Ladoga" },
-    { question: "Qual rio forma a fronteira entre a Alemanha e a França?", options: ["Reno", "Danúbio", "Elba"], answer: "Reno" },
-    { question: "Qual é o rio mais importante da Península Ibérica?", options: ["Tejo", "Douro", "Ebro"], answer: "Tejo" },
-    { question: "Qual rio deságua no Mar Negro?", options: ["Danúbio", "Volga", "Dnieper"], answer: "Danúbio" },
-    { question: "Qual é o maior lago da Europa em área superficial?", options: ["Lago Ladoga", "Lago Onega", "Lago Vänern"], answer: "Lago Ladoga" },
-
-    // Vegetação
-    { question: "Qual tipo de vegetação predomina no norte da Europa?", options: ["Tundra", "Florestas temperadas", "Vegetação mediterrânea"], answer: "Tundra" },
-    { question: "Qual é a vegetação predominante no sul da Europa?", options: ["Vegetação mediterrânea", "Tundra", "Florestas de coníferas"], answer: "Vegetação mediterrânea" },
-    { question: "Qual tipo de floresta é comum na Europa Central?", options: ["Florestas temperadas", "Florestas tropicais", "Florestas de coníferas"], answer: "Florestas temperadas" },
-    { question: "Qual é a principal árvore das florestas mediterrâneas?", options: ["Oliveira", "Carvalho", "Pinheiro"], answer: "Oliveira" },
-    { question: "Qual tipo de vegetação é encontrada nas regiões montanhosas da Europa?", options: ["Florestas de coníferas", "Tundra", "Savana"], answer: "Florestas de coníferas" },
-    { question: "Qual é a vegetação característica da tundra?", options: ["Musgos e líquens", "Árvores altas", "Cactos"], answer: "Musgos e líquens" },
-    { question: "Qual é a vegetação predominante na Península Ibérica?", options: ["Vegetação mediterrânea", "Tundra", "Florestas de coníferas"], answer: "Vegetação mediterrânea" },
-    { question: "Qual é a vegetação predominante na Escandinávia?", options: ["Florestas de coníferas", "Tundra", "Vegetação mediterrânea"], answer: "Florestas de coníferas" },
-    { question: "Qual é a vegetação predominante na Planície Húngara?", options: ["Estepe", "Florestas temperadas", "Tundra"], answer: "Estepe" },
-    { question: "Qual é a vegetação predominante nos Alpes?", options: ["Florestas de coníferas", "Tundra", "Vegetação mediterrânea"], answer: "Florestas de coníferas" },
-
-    // Clima
-    { question: "Qual é o clima predominante na Europa Central?", options: ["Temperado", "Árido", "Polar"], answer: "Temperado" },
-    { question: "Qual é o clima predominante no sul da Europa?", options: ["Mediterrâneo", "Polar", "Tropical"], answer: "Mediterrâneo" },
-    { question: "Qual é o clima predominante no norte da Europa?", options: ["Subártico", "Temperado", "Árido"], answer: "Subártico" },
-    { question: "Qual corrente oceânica influencia o clima da Europa Ocidental?", options: ["Corrente do Golfo", "Corrente de Humboldt", "Corrente de Kuroshio"], answer: "Corrente do Golfo" },
-    { question: "Qual é o clima predominante na Península Ibérica?", options: ["Mediterrâneo", "Polar", "Tropical"], answer: "Mediterrâneo" },
-    { question: "Qual é o clima predominante na Rússia Europeia?", options: ["Continental", "Mediterrâneo", "Tropical"], answer: "Continental" },
-    { question: "Qual é o clima predominante na Escandinávia?", options: ["Subártico", "Temperado", "Árido"], answer: "Subártico" },
-    { question: "Qual é o clima predominante nos Alpes?", options: ["Alpino", "Mediterrâneo", "Tropical"], answer: "Alpino" },
-    { question: "Qual é o clima predominante na Grécia?", options: ["Mediterrâneo", "Polar", "Tropical"], answer: "Mediterrâneo" },
-    { question: "Qual é o clima predominante na Islândia?", options: ["Subpolar", "Temperado", "Árido"], answer: "Subpolar" }
-];
-
-// Eventos de clique nos botões
-document.getElementById('start-quiz').addEventListener('click', startQuiz);
-document.getElementById('restart-quiz').addEventListener('click', restartQuiz);
+function timeUp() {
+    feedbackElement.innerHTML = `
+        <div class="feedback-incorrect">
+            <i class="fas fa-hourglass-end"></i> 
+            <strong>Tempo esgotado!</strong>
+        </div>
+    `;
+    
+    // Mostrar resposta correta
+    const correctAnswer = questions[currentQuestion].answer;
+    document.querySelectorAll('.quiz-option').forEach(button => {
+        button.disabled = true;
+        if (button.textContent.includes(correctAnswer)) {
+            button.className = 'quiz-option correct';
+            button.innerHTML = `<i class="fas fa-check-circle"></i> ${correctAnswer}`;
+        }
+    });
+    
+    nextBtn.classList.remove('hidden');
+}
